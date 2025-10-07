@@ -1,0 +1,16 @@
+- name: Boostrap Minimal Prereqs
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:  
+    - name: Install Python 3 
+      raw: |
+        if ! command -v python3 >/dev/null 2>&1; then
+          if command -v dnf >/dev/null 2>&1; then dnf -y install python3;
+          elif command -v yum >/dev/null 2>&1; then yum -y install python3;
+          else exit 1; fi
+        fi
+      changed_when: false
+
+    - name: Ping Python Present
+      ansible.builtin.ping:

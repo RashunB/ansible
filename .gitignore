@@ -1,0 +1,6 @@
+.factcache/
+.venv/
+*.retry
+*.swp
+.vscode/
+.vagrant/

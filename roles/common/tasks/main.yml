@@ -1,0 +1,47 @@
+- name: Install Common Packages
+  ansible.builtin.package:
+    name: "{{ common_packages }}"
+    state: present
+
+# Systemd-Idempotent-Sentinel
+- name: Configure Timezone
+  become: true
+  community.general.timezone:
+    name: "{{ timezone }}"
+
+- name: Persist Journald Logs
+  when: journald_persist | bool
+  block:
+    - name: Ensure /var/log/journal Exists
+      ansible.builtin.file:
+        path: /var/log/journal
+        state: directory
+        owner: root
+        group: systemd-journal
+        mode: "02755"
+
+    - name: Ensure /etc/systemd/journald.conf.d Exists
+      ansible.builtin.file:
+        path: /etc/systemd/journald.conf.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Drop Journald Config Fragment
+      ansible.builtin.copy:
+        dest: /etc/systemd/journald.conf.d/10-persistent.conf
+        owner: root
+        group: root
+        content: |
+          [Journal]
+          Storage=persistent
+          SystemMaxUse=4G
+      notify: Restart systemd-journald
+
+    - name: Disable rsyslog
+      when: journald_persist | bool
+      ansible.builtin.service:
+        name: rsyslog
+        state: stopped
+        enabled: false
