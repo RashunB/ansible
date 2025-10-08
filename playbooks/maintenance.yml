@@ -3,67 +3,73 @@
   become: true
   gather_facts: true
 
-  vars:
-    safe_update_list: ["*"]
-
-  pre_tasks:
-    - name: Update Package Metadata
-      ansible.builtin.package:
+  tasks:
+    - name: Refresh APT cache
+      ansible.builtin.apt:
         update_cache: true
       changed_when: false
 
-  tasks:
-    - name: Upgrade All Packages
-      ansible.builtin.package:
-        name: "{{ safe_update_list }}"
-        state: latest
-      register: pkg_upgrade
+    - name: Upgrade all packages
+      ansible.builtin.apt:
+        upgrade: dist
+        autoremove: true
 
-    - name: Detect Kernel changed_when
-      ansible.builtin.set_fact:
-        kernel_changed: "{{ (pkg_upgrade.results | default([])) | selectattr('name','search','^kernel') | list | length > 0 }}"
+    - name: Check if reboot is required
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_flag
+      changed_when: false
 
-    - name: Reboot
-      when: kernel_changed | bool
+    - name: Reboot if required
       ansible.builtin.reboot:
-        msg: "Ansible Triggered Reboot"
+        msg: "Maintenance-triggered reboot"
         reboot_timeout: 900
+      when: reboot_flag.stat.exists
 
-    - name: Maintenance Service - Unit File
+    - name: Install maintenance service
       ansible.builtin.copy:
         dest: /etc/systemd/system/ansible-maint.service
+        owner: root
+        group: root
+        mode: "0644"
         content: |
           [Unit]
-          Description = Ansible maintenance
-          Wants = network-online.target
-          After = network-online.target
+          Description=Ansible maintenance
+          After=network-online.target
+          Wants=network-online.target
 
           [Service]
-          Type = oneshot
-          ExecStart = /usr/bin/flock -n /var/run/ansible-maint.lock \
-          /tank/appdata/ansible/.venv/bin/ansible-playbook /tank/appdata/ansible/playbooks/maintenance.yml -l localhost
-          WorkingDirectory = /tank/appdata/ansible
+          Type=oneshot
+          ExecStart=/usr/bin/flock -n /run/ansible-maint.lock /usr/bin/ansible-playbook /tank/appdata/ansible/playbooks/maintenance.yml -l localhost
+      notify: Reload systemd
 
-    - name: Maintenance Service - Timer
+    - name: Install maintenance timer
       ansible.builtin.copy:
         dest: /etc/systemd/system/ansible-maint.timer
+        owner: root
+        group: root
+        mode: "0644"
         content: |
           [Unit]
-          Description= Ansible Maintenance Weekly
+          Description=Run Ansible maintenance weekly
 
           [Timer]
-          OnCalendar=Weekly
+          OnCalendar=Sun *-*-* 03:00:00
           RandomizedDelaySec=900
           Persistent=true
 
           [Install]
           WantedBy=timers.target
+      notify:
+        - Reload systemd
+        - Enable and start timer
 
-        notify: 
-
-  post_tasks:
-    - name: Summary
-      ansible.builtin.debug:
-        msg:
-          - "Packages changed: {{ pkg_upgrade.changed | default(false) }}"
-          - "Kernel changed: {{ kernel_changed | default(false) }}"
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+    - name: Enable and start timer
+      ansible.builtin.systemd:
+        name: ansible-maint.timer
+        enabled: true
+        state: started
