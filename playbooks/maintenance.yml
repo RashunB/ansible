@@ -31,7 +31,7 @@
 
     - name: Maintenance Service - Unit File
       ansible.builtin.copy:
-        dest: /etc/systemd/journald.conf.d/10-persistent.conf
+        dest: /etc/systemd/system/ansible-maint.service
         content: |
           [Unit]
           Description = Ansible maintenance
