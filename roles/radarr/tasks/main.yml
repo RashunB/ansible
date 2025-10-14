@@ -1,0 +1,55 @@
+- name: Install Common Packages
+  ansible.builtin.package:
+    name: "{{ radarr_packages }}"
+    state: present
+
+- name: Establish Directories
+  block:
+    - name: /tank/appdata/radarr
+      ansible.builtin.file:
+        path: /tank/appdata/radarr
+        state: directory
+        owner: "{{ radarr_user }}"
+        group: "{{ radarr_group }}"
+        mode: "02775"
+
+    - name: /tank/appdata/radarr/app
+      ansible.builtin.file:
+        path: /tank/appdata/radarr/app
+        state: directory
+        owner: "{{ radarr_user }}"
+        group: "{{ radarr_group }}"
+        mode: "02775"
+
+    - name: /tank/appdata/radarr/data
+      ansible.builtin.file:
+        path: /tank/appdata/radarr/data
+        state: directory
+        owner: "{{ radarr_user }}"
+        group: "{{ radarr_group }}"
+        mode: "02775"
+
+    - name: /tank/appdata/radarr/logs
+      ansible.builtin.file:
+        path: /tank/appdata/radarr/logs
+        state: directory
+        owner: "{{ radarr_user }}"
+        group: "{{ radarr_group }}"
+        mode: "02775"
+
+    - name: /tank/appdata/radarr/versions
+      ansible.builtin.file:
+        path: /tank/appdata/radarr/versions
+        state: directory
+        owner: "{{ radarr_user }}"
+        group: "{{ radarr_group }}"
+        mode: "02775"
+
+- name: Pull Updated Version
+  ansible.builtin.get_url:
+    url: "{{ radarr_download_url }}"
+    mode: "0775"
+    checksum: "{{ radarr_sha256 }}"
+    dest: /tank/appdata/radarr/versions/radarr_{{ radarr_version }}
+    owner: ansible
+    group: "{{ radarr_group }}"
