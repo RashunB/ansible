@@ -7,10 +7,10 @@
 - name: Configure Timezone
   become: true
   community.general.timezone:
-    name: "{{ timezone }}"
+    name: "{{ common_timezone }}"
 
 - name: Persist Journald Logs
-  when: journald_persist | bool
+  when: common_journald_persist | bool
   block:
     - name: Ensure /var/log/journal Exists
       ansible.builtin.file:
@@ -33,6 +33,7 @@
         dest: /etc/systemd/journald.conf.d/10-persistent.conf
         owner: root
         group: root
+        mode: "0755"
         content: |
           [Journal]
           Storage=persistent

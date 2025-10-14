@@ -1,0 +1,8 @@
+profile: production
+use_default_rules: true
+exclude_paths:
+  - ".factcache/"
+  - "collections/"
+parseable: true
+# Optional: keep to your supported core
+# enable_list: [fqcn-builtins, no-changed-when]  # example rule selection

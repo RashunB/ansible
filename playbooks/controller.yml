@@ -7,7 +7,7 @@
     - name: Gather Facts
       become: false
       ansible.builtin.setup:
-        gather_subset: 
+        gather_subset:
           - min
 
   roles:
