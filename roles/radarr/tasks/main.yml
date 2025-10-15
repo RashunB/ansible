@@ -5,51 +5,56 @@
 
 - name: Establish Directories
   block:
-    - name: /tank/appdata/radarr
+    - name: "{{ radarr_root }}"
       ansible.builtin.file:
-        path: /tank/appdata/radarr
+        path: "{{ radarr_root }}"
         state: directory
         owner: "{{ radarr_user }}"
         group: "{{ radarr_group }}"
         mode: "02775"
 
-    - name: /tank/appdata/radarr/app
+    - name: Radarr Subdirectories
       ansible.builtin.file:
-        path: /tank/appdata/radarr/app
+        path: "{{ radarr_root }}/{{ item }}"
         state: directory
         owner: "{{ radarr_user }}"
         group: "{{ radarr_group }}"
         mode: "02775"
+      loop:
+        - app
+        - data
+        - logs
+        - versions
 
-    - name: /tank/appdata/radarr/data
-      ansible.builtin.file:
-        path: /tank/appdata/radarr/data
-        state: directory
-        owner: "{{ radarr_user }}"
-        group: "{{ radarr_group }}"
-        mode: "02775"
+    # - name: "{{ radarr_root }}/data"
+    #   ansible.builtin.file:
+    #     path: "{{ radarr_root }}/data"
+    #     state: directory
+    #     owner: "{{ radarr_user }}"
+    #     group: "{{ radarr_group }}"
+    #     mode: "02775"
 
-    - name: /tank/appdata/radarr/logs
-      ansible.builtin.file:
-        path: /tank/appdata/radarr/logs
-        state: directory
-        owner: "{{ radarr_user }}"
-        group: "{{ radarr_group }}"
-        mode: "02775"
+    # - name: "{{ radarr_root }}/logs"
+    #   ansible.builtin.file:
+    #     path: "{{ radarr_root }}/logs"
+    #     state: directory
+    #     owner: "{{ radarr_user }}"
+    #     group: "{{ radarr_group }}"
+    #     mode: "02775"
 
-    - name: /tank/appdata/radarr/versions
-      ansible.builtin.file:
-        path: /tank/appdata/radarr/versions
-        state: directory
-        owner: "{{ radarr_user }}"
-        group: "{{ radarr_group }}"
-        mode: "02775"
+    # - name: "{{ radarr_root }}/versions"
+    #   ansible.builtin.file:
+    #     path: "{{ radarr_root }}/versions"
+    #     state: directory
+    #     owner: "{{ radarr_user }}"
+    #     group: "{{ radarr_group }}"
+    #     mode: "02775"
 
 - name: Pull Updated Version
   ansible.builtin.get_url:
     url: "{{ radarr_download_url }}"
     mode: "0775"
     checksum: "{{ radarr_sha256 }}"
-    dest: /tank/appdata/radarr/versions/radarr_{{ radarr_version }}
+    dest: "{{ radarr_root }}/versions/radarr_{{ radarr_version }}.tar.gz"
     owner: ansible
     group: "{{ radarr_group }}"
