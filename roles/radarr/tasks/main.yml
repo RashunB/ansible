@@ -64,10 +64,3 @@
         mode: "0664"
       register: updated_service
       notify: Start App
-
-    # - name: Start Service
-    #   ansible.builtin.systemd_service:
-    #     name: radarr.service
-    #     state: restarted
-    #     daemon_reload: true
-    #   when: updated_service.changed
