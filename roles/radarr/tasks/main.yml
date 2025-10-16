@@ -9,16 +9,16 @@
       ansible.builtin.file:
         path: "{{ radarr_root }}"
         state: directory
-        owner: "{{ radarr_user }}"
-        group: "{{ radarr_group }}"
+        owner: radarr
+        group: media
         mode: "02775"
 
     - name: Radarr Subdirectories
       ansible.builtin.file:
         path: "{{ radarr_root }}/{{ item }}"
         state: directory
-        owner: "{{ radarr_user }}"
-        group: "{{ radarr_group }}"
+        owner: radarr
+        group: media
         mode: "02775"
       loop:
         - app
@@ -26,35 +26,48 @@
         - logs
         - versions
 
-    # - name: "{{ radarr_root }}/data"
-    #   ansible.builtin.file:
-    #     path: "{{ radarr_root }}/data"
-    #     state: directory
-    #     owner: "{{ radarr_user }}"
-    #     group: "{{ radarr_group }}"
-    #     mode: "02775"
-
-    # - name: "{{ radarr_root }}/logs"
-    #   ansible.builtin.file:
-    #     path: "{{ radarr_root }}/logs"
-    #     state: directory
-    #     owner: "{{ radarr_user }}"
-    #     group: "{{ radarr_group }}"
-    #     mode: "02775"
-
-    # - name: "{{ radarr_root }}/versions"
-    #   ansible.builtin.file:
-    #     path: "{{ radarr_root }}/versions"
-    #     state: directory
-    #     owner: "{{ radarr_user }}"
-    #     group: "{{ radarr_group }}"
-    #     mode: "02775"
-
 - name: Pull Updated Version
-  ansible.builtin.get_url:
-    url: "{{ radarr_download_url }}"
-    mode: "0775"
-    checksum: "{{ radarr_sha256 }}"
-    dest: "{{ radarr_root }}/versions/radarr_{{ radarr_version }}.tar.gz"
-    owner: ansible
-    group: "{{ radarr_group }}"
+  block:
+    - name: Download Radarr Release
+      ansible.builtin.get_url:
+        url: "{{ radarr_github_url }}/v{{ radarr_version }}/Radarr.master.{{ radarr_version }}.linux-core-x64.tar.gz"
+        mode: "0775"
+        checksum: "{{ radarr_sha256 }}"
+        dest: "{{ radarr_root }}/versions/radarr_{{ radarr_version }}.tar.gz"
+        owner: ansible
+        group: media
+
+    - name: Create Release Archive Folder
+      ansible.builtin.file:
+        path: "{{ radarr_root }}/versions/radarr_{{ radarr_version }}"
+        state: directory
+        owner: radarr
+        group: media
+        mode: "02775"
+
+    - name: Decompress Release
+      ansible.builtin.unarchive:
+        owner: ansible
+        group: media
+        src: "{{ radarr_root }}/versions/radarr_{{ radarr_version }}.tar.gz"
+        dest: "{{ radarr_root }}/versions/radarr_{{ radarr_version }}"
+
+- name: Radarr Service
+  block:
+    - name: Service File
+      ansible.builtin.template:
+        backup: true
+        src: /tank/appdata/ansible/roles/radarr/templates/radarr_service
+        dest: "{{ radarr_service }}"
+        owner: root
+        group: media
+        mode: "0664"
+      register: updated_service
+      notify: Start App
+
+    # - name: Start Service
+    #   ansible.builtin.systemd_service:
+    #     name: radarr.service
+    #     state: restarted
+    #     daemon_reload: true
+    #   when: updated_service.changed
