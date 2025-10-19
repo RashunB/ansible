@@ -1,0 +1,10 @@
+- name: Media Group
+  ansible.builtin.group:
+    name: "{{ media_app_group }}"
+
+- name: App User
+  ansible.builtin.user:
+    name: "{{ media_app_owner }}"
+    append: "{{ media_app_group }}"
+    shell: /sbin/nologin
+    comment: "Service account used for {{ media_app_name | capitalize }}."

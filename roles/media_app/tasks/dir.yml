@@ -1,0 +1,22 @@
+- name: Establish Directories
+  block:
+    - name: App Root
+      ansible.builtin.file:
+        path: "{{ media_app_root }}"
+        state: directory
+        owner: "{{ media_app_owner }}"
+        group: "{{ media_app_group }}"
+        mode: "02775"
+
+    - name: "Create Subdirectories"
+      ansible.builtin.file:
+        path: "{{ media_app_root }}/{{ item }}"
+        state: directory
+        owner: "{{ media_app_owner }}"
+        group: "{{ media_app_group }}"
+        mode: "02775"
+      loop:
+        - app
+        - data
+        - logs
+        - versions

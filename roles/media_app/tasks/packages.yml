@@ -1,0 +1,4 @@
+- name: Install Packages
+  ansible.builtin.package:
+    name: "{{ media_app_packages }}"
+    state: present

@@ -1,0 +1,66 @@
+- name: Install Packages
+  ansible.builtin.package:
+    name: "{{ media_app_packages }}"
+    state: present
+
+- name: Establish Directories
+  block:
+    - name: Root Folder
+      ansible.builtin.file:
+        path: "{{ media_app_root }}"
+        state: directory
+        owner: "{{ media_app_owner }}"
+        group: "{{ media_app_group }}"
+        mode: "02775"
+
+    - name: Subdirectories
+      ansible.builtin.file:
+        path: "{{ media_app_root }}/{{ item }}"
+        state: directory
+        owner: "{{ media_app_owner }}"
+        group: "{{ media_app_group }}"
+        mode: "02775"
+      loop:
+        - app
+        - data
+        - logs
+        - versions
+
+- name: Pull Updated Version
+  block:
+    - name: Download Release
+      ansible.builtin.get_url:
+        url: "{{ media_app_download_url }}"
+        mode: "0775"
+        checksum: "{{ media_app_sha256 }}"
+        dest: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}.tar.gz"
+        owner: "{{ media_app_owner }}"
+        group: "{{ media_app_group }}"
+
+    - name: Create Release Archive Folder
+      ansible.builtin.file:
+        path: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}"
+        state: directory
+        owner: "{{ media_app_owner }}"
+        group: "{{ media_app_group }}"
+        mode: "02775"
+
+    - name: Decompress Release
+      ansible.builtin.unarchive:
+        owner: "{{ media_app_owner }}"
+        group: "{{ media_app_group }}"
+        src: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}.tar.gz"
+        dest: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}"
+
+- name: Setup Service
+  block:
+    - name: Service File
+      ansible.builtin.template:
+        backup: true
+        src: "{{ appdata }}/ansible/roles/media_app/templates/media_app_service.j2"
+        dest: "{{ media_app_service_file }}.test"
+        owner: root
+        group: "{{ media_app_group }}"
+        mode: "0664"
+      register: updated_service
+      # notify: Start App

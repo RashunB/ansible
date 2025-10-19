@@ -1,0 +1,13 @@
+- name: Radarr
+  ansible.builtin.include_role:
+    name: media_app
+  vars:
+    media_app_name: radarr
+    media_app_version: 5.26.2.10099
+    media_app_release: "{{ media_app_name | capitalize }}.master.{{ media_app_version }}.linux-core-x64.tar.gz"
+    media_app_download_url: "{{ media_app_github_url }}/v{{ media_app_version }}/{{ media_app_release }}"
+    media_app_github_url: https://github.com/Radarr/Radarr/releases/download
+    media_app_sha256: sha256:576d9e8cf4ee0f67d7986ce1e8a2accfbc999da96be3e9ae71daca2012bd55ba
+    media_app_packages:
+      - curl
+      - sqlite3
