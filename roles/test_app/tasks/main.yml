@@ -11,3 +11,27 @@
     media_app_packages:
       - curl
       - sqlite3
+    media_app_dirs:
+      - "{{ media_app_root }}"
+      - /tank/media/downloads
+      - /tank/media/arr_suite/movies
+    media_app_wants:
+      - network-online.target
+      - sabnzbdplus.service
+      - prowlarr.service
+    media_app_after:
+      - network-online.target
+      - sabnzbdplus.service
+      - prowlarr.service
+    media_app_service_exec: "{{ media_app_app_dir }}/{{ media_app_name | capitalize }} -nobrowser -data=/srv/{{ media_app_name }}/data"
+    media_app_srv:
+      - app
+      - data
+      - downloads
+      - movies
+    media_app_bind_ro:
+      - "{{ media_app_app_dir }}:/srv/{{ media_app_name }}/app"
+    media_app_bind_rw:
+      - /tank/media/downloads:/srv/downloads
+      - /tank/media/arr_suite/movies:/srv/movies
+      - "{{ media_app_data_dir }}:/srv/{{ media_app_name }}/data"

@@ -1,6 +1,6 @@
 # App and Ownership
 media_app_name:
-
+media_app_service_acct: arrservice
 media_app_owner: "{{ media_app_name }}"
 media_app_group: media
 
@@ -14,8 +14,10 @@ media_app_release:
 # Folders
 media_app_root: "{{ appdata }}/{{ media_app_name }}"
 media_app_versions: "{{ media_app_root }}/versions"
-media_app_link: "{{ media_app_root }}/app"
+media_app_app_dir: "{{ media_app_root }}/app"
+media_app_data_dir: "{{ media_app_root }}/data"
 media_app_library:
+media_app_dirs:
 
 # Service and Dependencies
 media_app_service_file: "/etc/systemd/system/{{ media_app_name }}.service"
@@ -23,4 +25,4 @@ media_app_service_name: "{{ media_app_name }}.service"
 media_app_wants: []
 media_app_after: []
 media_app_packages: []
-media_app_exec:
+media_app_service_exec:

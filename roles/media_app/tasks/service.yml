@@ -3,10 +3,10 @@
     - name: Service File
       ansible.builtin.template:
         backup: true
-        src: "{{ appdata }}/ansible/roles/media_app/templates/media_app_service.j2"
+        src: "{{ appdata }}/ansible/roles/media_app/templates/app_service.j2"
         dest: "{{ media_app_service_file }}.test"
         owner: root
         group: "{{ media_app_group }}"
         mode: "0664"
       register: updated_service
-      # notify: Start App
+      notify: Restart App

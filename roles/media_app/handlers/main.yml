@@ -1,6 +1,6 @@
-- name: Start App
+- name: Restart App
   ansible.builtin.systemd_service:
     name: "{{ media_app_name }}.service"
     state: restarted
     daemon_reload: true
-  when: updated_service.changed
+    enabled: true

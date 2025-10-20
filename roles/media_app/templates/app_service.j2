@@ -1,18 +1,18 @@
 [Unit]
 Description={{ media_app_name | capitalize }} Daemon
-RequiresMountsFor={{ media_app_root}} /tank/media/downloads /tank/media/arr_suite/movies
-Wants=network-online.target sabnzbdplus.service prowlarr.service
-After=network-online.target sabnzbdplus.service prowlarr.service
+RequiresMountsFor={{ media_app_dirs | default([]) | join(' ') }}
+Wants={{ media_app_wants | default([]) | join(' ') }}
+After={{ media_app_after | default([]) | join(' ') }}
 
 [Service]
 Type=simple
-User={{ media_app_name }}
-Group=media
+User={{ media_app_owner }}
+Group={{ media_app_group }}
 UMask=0002
 WorkingDirectory=/srv/{{ media_app_name }}
 RuntimeDirectory={{ media_app_name }}
 
-ExecStart={{ media_app_root }}/app/{{ media_app_name | capitalize }} -nobrowser -data=/srv/{{ media_app_name }}/data
+ExecStart={{ media_service_exec }}
 
 # Restart & shutdown behavior
 Restart=on-failure
@@ -56,12 +56,13 @@ SystemCallFilter=@system-service @basic-io @file-system @network-io @process @si
 SystemCallFilter=~ @mount @raw-io @reboot @swap @module @debug
 
 # Bind Mounts
-BindReadOnlyPaths={{ media_app_root }}/app:/srv/{{ media_app_name }}/app
-BindPaths={{ media_app_root }}/data:/srv/{{ media_app_name }}/data
-BindPaths=/tank/media/downloads:/srv/downloads
-BindPaths=/tank/media/arr_suite/movies:/srv/movies
+{% for path in media_bind_ro | default([]) %}
+BindReadOnlyPaths={{ path }}
+{% endfor%}
 
-ReadWritePaths=/srv/{{ media_app_name }}/data /srv/downloads /srv/movies
+{% for path in media_bind_rw | default([]) %}
+BindPaths={{ path }}
+{% endfor%}
 
 [Install]
 WantedBy=multi-user.target

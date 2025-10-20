@@ -1,15 +1,13 @@
 - name: Pull Updated Version
   block:
-    - name: "Download {{ media_app_name | capitalize }} Release"
+    - name: Download Release
       ansible.builtin.get_url:
         url: "{{ media_app_download_url }}"
-        mode: "0775"
+        mode: "0644"
         checksum: "{{ media_app_sha256 }}"
         dest: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}.tar.gz"
         owner: "{{ media_app_owner }}"
         group: "{{ media_app_group }}"
-        remote_src: true
-      creates: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}.tar.gz"
 
     - name: Create Release Archive Folder
       ansible.builtin.file:
@@ -18,7 +16,6 @@
         owner: "{{ media_app_owner }}"
         group: "{{ media_app_group }}"
         mode: "02775"
-      creates: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}"
 
     - name: Decompress Release
       ansible.builtin.unarchive:
@@ -26,4 +23,3 @@
         group: "{{ media_app_group }}"
         src: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}.tar.gz"
         dest: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}"
-      creates: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}/Radarr"

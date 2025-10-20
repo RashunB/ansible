@@ -20,3 +20,20 @@
         - data
         - logs
         - versions
+
+    - name: App Root
+      ansible.builtin.file:
+        path: "/srv"
+        state: directory
+        owner: "{{ media_app_service_acct }}"
+        group: "{{ media_app_group }}"
+        mode: "02775"
+
+    - name: "Create SRV Subdirectories"
+      ansible.builtin.file:
+        path: "/srv/{{ item }}"
+        state: directory
+        owner: "{{ media_app_owner }}"
+        group: "{{ media_app_group }}"
+        mode: "02775"
+      loop: "{{ media_app_srv }}"
