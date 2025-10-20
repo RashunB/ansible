@@ -1,66 +1,37 @@
-- name: Install Common Packages
-  ansible.builtin.package:
-    name: "{{ radarr_packages }}"
-    state: present
-
-- name: Establish Directories
-  block:
-    - name: "{{ radarr_root }}"
-      ansible.builtin.file:
-        path: "{{ radarr_root }}"
-        state: directory
-        owner: radarr
-        group: media
-        mode: "02775"
-
-    - name: Radarr Subdirectories
-      ansible.builtin.file:
-        path: "{{ radarr_root }}/{{ item }}"
-        state: directory
-        owner: radarr
-        group: media
-        mode: "02775"
-      loop:
-        - app
-        - data
-        - logs
-        - versions
-
-- name: Pull Updated Version
-  block:
-    - name: Download Radarr Release
-      ansible.builtin.get_url:
-        url: "{{ radarr_github_url }}/v{{ radarr_version }}/Radarr.master.{{ radarr_version }}.linux-core-x64.tar.gz"
-        mode: "0775"
-        checksum: "{{ radarr_sha256 }}"
-        dest: "{{ radarr_root }}/versions/radarr_{{ radarr_version }}.tar.gz"
-        owner: ansible
-        group: media
-
-    - name: Create Release Archive Folder
-      ansible.builtin.file:
-        path: "{{ radarr_root }}/versions/radarr_{{ radarr_version }}"
-        state: directory
-        owner: radarr
-        group: media
-        mode: "02775"
-
-    - name: Decompress Release
-      ansible.builtin.unarchive:
-        owner: ansible
-        group: media
-        src: "{{ radarr_root }}/versions/radarr_{{ radarr_version }}.tar.gz"
-        dest: "{{ radarr_root }}/versions/radarr_{{ radarr_version }}"
-
-- name: Radarr Service
-  block:
-    - name: Service File
-      ansible.builtin.template:
-        backup: true
-        src: /tank/appdata/ansible/roles/radarr/templates/radarr_service
-        dest: "{{ radarr_service }}"
-        owner: root
-        group: media
-        mode: "0664"
-      register: updated_service
-      notify: Start App
+- name: Radarr
+  ansible.builtin.include_role:
+    name: media_app
+  vars:
+    media_app_name: radarr
+    media_app_version: 5.26.2.10099
+    media_app_release: "{{ media_app_name | capitalize }}.master.{{ media_app_version }}.linux-core-x64.tar.gz"
+    media_app_download_url: "{{ media_app_github_url }}/v{{ media_app_version }}/{{ media_app_release }}"
+    media_app_github_url: https://github.com/Radarr/Radarr/releases/download
+    media_app_sha256: sha256:576d9e8cf4ee0f67d7986ce1e8a2accfbc999da96be3e9ae71daca2012bd55ba
+    media_app_packages:
+      - curl
+      - sqlite3
+    media_app_dirs:
+      - "{{ media_app_root }}"
+      - "{{ media_app_root_dir }}/downloads"
+      - "{{ media_app_root_dir }}/arr_suite/movies"
+    media_app_wants:
+      - network-online.target
+      - sabnzbdplus.service
+      - prowlarr.service
+    media_app_after:
+      - network-online.target
+      - sabnzbdplus.service
+      - prowlarr.service
+    media_app_service_exec: "{{ media_app_app_dir }}/{{ media_app_name | capitalize }} -nobrowser -data=/srv/{{ media_app_name }}/data"
+    media_app_app_srv:
+      - data
+    media_app_sys_srv:
+      - downloads
+      - movies
+    media_app_bind_ro:
+      - "{{ media_app_app_dir }}:/srv/{{ media_app_name }}/app"
+    media_app_bind_rw:
+      - "{{ media_app_root_dir }}/downloads:/srv/downloads"
+      - "{{ media_app_root_dir }}/arr_suite/movies:/srv/movies"
+      - "{{ media_app_data_dir }}:/srv/{{ media_app_name }}/data"

@@ -2,19 +2,19 @@
   ansible.builtin.include_role:
     name: media_app
   vars:
-    media_app_name: radarr
-    media_app_version: 5.26.2.10099
-    media_app_release: "{{ media_app_name | capitalize }}.master.{{ media_app_version }}.linux-core-x64.tar.gz"
+    media_app_name: sonarr
+    media_app_version: 4.0.15.2941
+    media_app_release: "{{ media_app_name | capitalize }}.main.{{ media_app_version }}.linux-x64.tar.gz"
+    media_app_github_url: https://github.com/Sonarr/Sonarr/releases/download
     media_app_download_url: "{{ media_app_github_url }}/v{{ media_app_version }}/{{ media_app_release }}"
-    media_app_github_url: https://github.com/Radarr/Radarr/releases/download
-    media_app_sha256: sha256:576d9e8cf4ee0f67d7986ce1e8a2accfbc999da96be3e9ae71daca2012bd55ba
+    media_app_sha256: sha256:80d693b013dbec8cebc19c936bc1fcdcf876e3aa62f02757216fdf86e0c9fa91
     media_app_packages:
       - curl
       - sqlite3
     media_app_dirs:
       - "{{ media_app_root }}"
-      - /tank/media/downloads
-      - /tank/media/arr_suite/movies
+      - "{{ media_app_root_dir }}/downloads"
+      - "{{ media_app_root_dir }}/arr_suite/tv"
     media_app_wants:
       - network-online.target
       - sabnzbdplus.service
@@ -24,14 +24,14 @@
       - sabnzbdplus.service
       - prowlarr.service
     media_app_service_exec: "{{ media_app_app_dir }}/{{ media_app_name | capitalize }} -nobrowser -data=/srv/{{ media_app_name }}/data"
-    media_app_srv:
-      - app
+    media_app_app_srv:
       - data
+    media_app_sys_srv:
       - downloads
-      - movies
+      - tv
     media_app_bind_ro:
       - "{{ media_app_app_dir }}:/srv/{{ media_app_name }}/app"
     media_app_bind_rw:
-      - /tank/media/downloads:/srv/downloads
-      - /tank/media/arr_suite/movies:/srv/movies
+      - "{{ media_app_root_dir }}/downloads:/srv/downloads"
+      - "{{ media_app_root_dir }}/arr_suite/tv:/srv/tv"
       - "{{ media_app_data_dir }}:/srv/{{ media_app_name }}/data"

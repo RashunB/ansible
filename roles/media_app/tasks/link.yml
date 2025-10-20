@@ -1,0 +1,8 @@
+- name: Create a symbolic link - "{{ media_app_name | capitalize }}"
+  ansible.builtin.file:
+    src: "{{ release.dest }}/{{ media_app_name | capitalize }}"
+    dest: "{{ media_app_app_dir }}"
+    owner: "{{ media_app_owner }}"
+    group: "{{ media_app_group }}"
+    state: link
+  notify: Restart App - "{{ media_app_name | capitalize }}"

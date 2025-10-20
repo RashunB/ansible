@@ -1,7 +1,0 @@
-radarr_version: 5.26.2.10099
-radarr_download_url: http://radarr.servarr.com/v1/update/master/updatefile?os=linux&runtime=netcore&arch=x64
-radarr_github_url: https://github.com/Radarr/Radarr/releases/download
-radarr_sha256: sha256:576d9e8cf4ee0f67d7986ce1e8a2accfbc999da96be3e9ae71daca2012bd55ba
-radarr_root: /tank/appdata/radarr
-radarr_service: /etc/systemd/system/radarr.service
-radarr_packages: [curl, sqlite3]

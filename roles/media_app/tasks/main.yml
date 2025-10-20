@@ -2,22 +2,22 @@
   ansible.builtin.import_tasks: packages.yml
   tags: [media_app, packages]
 
-- name: Packages
+- name: Users
   ansible.builtin.import_tasks: users.yml
   tags: [media_app, users]
 
-- name: Packages
+- name: Directories
   ansible.builtin.import_tasks: dirs.yml
   tags: [media_app, dirs]
 
-- name: Packages
+- name: Download
   ansible.builtin.import_tasks: download.yml
   tags: [media_app, download]
 
-- name: Packages
+- name: Service
   ansible.builtin.import_tasks: service.yml
   tags: [media_app, service]
 
-- name: Packages
+- name: Link Release
   ansible.builtin.import_tasks: link.yml
   tags: [media_app, link]

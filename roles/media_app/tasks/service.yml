@@ -1,12 +1,18 @@
-- name: Setup Service
+- name: Setup Service - "{{ media_app_name | capitalize }}"
   block:
-    - name: Service File
+    - name: Service File - "{{ media_app_name | capitalize }}"
       ansible.builtin.template:
         backup: true
         src: "{{ appdata }}/ansible/roles/media_app/templates/app_service.j2"
-        dest: "{{ media_app_service_file }}.test"
+        dest: "{{ media_app_service_file }}"
         owner: root
         group: "{{ media_app_group }}"
         mode: "0664"
-      register: updated_service
-      notify: Restart App
+      register: service
+      notify: Restart App - "{{ media_app_name | capitalize }}"
+
+- name: Start App - "{{ media_app_name | capitalize }}"
+  ansible.builtin.systemd_service:
+    name: "{{ media_app_service_name }}"
+    state: started
+    enabled: true

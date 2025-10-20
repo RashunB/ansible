@@ -12,7 +12,7 @@ UMask=0002
 WorkingDirectory=/srv/{{ media_app_name }}
 RuntimeDirectory={{ media_app_name }}
 
-ExecStart={{ media_service_exec }}
+ExecStart={{ media_app_service_exec }}
 
 # Restart & shutdown behavior
 Restart=on-failure
@@ -56,11 +56,11 @@ SystemCallFilter=@system-service @basic-io @file-system @network-io @process @si
 SystemCallFilter=~ @mount @raw-io @reboot @swap @module @debug
 
 # Bind Mounts
-{% for path in media_bind_ro | default([]) %}
+{% for path in media_app_bind_ro | default([]) %}
 BindReadOnlyPaths={{ path }}
 {% endfor%}
 
-{% for path in media_bind_rw | default([]) %}
+{% for path in media_app_bind_rw | default([]) %}
 BindPaths={{ path }}
 {% endfor%}
 

@@ -1,6 +1,18 @@
-- name: Restart App
+- name: Restart App - "{{ media_app_name | capitalize }}"
   ansible.builtin.systemd_service:
-    name: "{{ media_app_name }}.service"
+    name: "{{ media_app_service_name }}"
     state: restarted
     daemon_reload: true
+    enabled: true
+
+- name: Stop App - "{{ media_app_name | capitalize }}"
+  ansible.builtin.systemd_service:
+    name: "{{ media_app_service_name }}"
+    state: stopped
+    enabled: true
+
+- name: Start App - "{{ media_app_name | capitalize }}"
+  ansible.builtin.systemd_service:
+    name: "{{ media_app_service_name }}"
+    state: started
     enabled: true

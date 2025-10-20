@@ -1,6 +1,6 @@
-- name: Establish Directories
+- name: Establish and Manage Directories - "{{ media_app_name | capitalize }}"
   block:
-    - name: App Root
+    - name: App Root - "{{ media_app_name | capitalize }}"
       ansible.builtin.file:
         path: "{{ media_app_root }}"
         state: directory
@@ -8,32 +8,45 @@
         group: "{{ media_app_group }}"
         mode: "02775"
 
-    - name: "Create Subdirectories"
+    - name: App Subdirectories - "{{ media_app_name | capitalize }}"
       ansible.builtin.file:
         path: "{{ media_app_root }}/{{ item }}"
         state: directory
         owner: "{{ media_app_owner }}"
         group: "{{ media_app_group }}"
         mode: "02775"
-      loop:
-        - app
-        - data
-        - logs
-        - versions
+      loop: "{{ media_app_app_srv }}"
 
-    - name: App Root
+    - name: /srv Root - "{{ media_app_name | capitalize }}"
       ansible.builtin.file:
         path: "/srv"
         state: directory
-        owner: "{{ media_app_service_acct }}"
-        group: "{{ media_app_group }}"
-        mode: "02775"
+        owner: root
+        group: root
+        mode: "0755"
 
-    - name: "Create SRV Subdirectories"
+    - name: /srv System Subdirectories - "{{ media_app_name | capitalize }}"
       ansible.builtin.file:
         path: "/srv/{{ item }}"
         state: directory
-        owner: "{{ media_app_owner }}"
-        group: "{{ media_app_group }}"
-        mode: "02775"
-      loop: "{{ media_app_srv }}"
+        owner: root
+        group: root
+        mode: "0755"
+      loop: "{{ media_app_sys_srv }}"
+
+    - name: /srv App Root - "{{ media_app_name | capitalize }}"
+      ansible.builtin.file:
+        path: "/srv/{{ media_app_name }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: /srv App Subdirectories - "{{ media_app_name | capitalize }}"
+      ansible.builtin.file:
+        path: "/srv/{{ media_app_name }}/{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      loop: "{{ media_app_app_srv }}"

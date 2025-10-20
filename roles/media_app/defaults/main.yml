@@ -18,6 +18,11 @@ media_app_app_dir: "{{ media_app_root }}/app"
 media_app_data_dir: "{{ media_app_root }}/data"
 media_app_library:
 media_app_dirs:
+media_app_root_dir: /tank/media
+media_app_app_srv:
+media_app_sys_srv:
+media_app_bind_ro:
+media_app_bind_rw:
 
 # Service and Dependencies
 media_app_service_file: "/etc/systemd/system/{{ media_app_name }}.service"
