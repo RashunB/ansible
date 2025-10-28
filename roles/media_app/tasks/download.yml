@@ -25,4 +25,6 @@
         dest: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}"
         owner: "{{ media_app_owner }}"
         group: "{{ media_app_group }}"
+      args:
+        creates: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}/Radarr"
       register: release

@@ -1,3 +1,7 @@
+- name: Media Group - "{{ media_app_name | capitalize }}"
+  ansible.builtin.group:
+    name: "{{ media_app_group }}"
+
 - name: Arrservice Acct - "{{ media_app_name | capitalize }}"
   ansible.builtin.user:
     name: "{{ media_app_service_acct }}"
@@ -5,10 +9,6 @@
     append: true
     shell: /bin/bash
     comment: "Service account used for media apps."
-
-- name: Media Group - "{{ media_app_name | capitalize }}"
-  ansible.builtin.group:
-    name: "{{ media_app_group }}"
 
 - name: App User - "{{ media_app_name | capitalize }}"
   ansible.builtin.user:

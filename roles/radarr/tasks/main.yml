@@ -11,10 +11,10 @@
     media_app_packages:
       - curl
       - sqlite3
-    media_app_dirs:
+    media_app_service_dirs:
       - "{{ media_app_root }}"
-      - "{{ media_app_root_dir }}/downloads"
-      - "{{ media_app_root_dir }}/arr_suite/movies"
+      - "{{ media_app_media_root }}/downloads"
+      - "{{ media_app_media_root }}/arr_suite/movies"
     media_app_service_wants:
       - network-online.target
       - sabnzbdplus.service
@@ -23,15 +23,15 @@
       - network-online.target
       - sabnzbdplus.service
       - prowlarr.service
-    media_app_service_exec: "{{ media_app_app_dir }}/{{ media_app_name | capitalize }} -nobrowser -data=/srv/{{ media_app_name }}/data"
+    media_app_service_exec: "{{ media_app_app }}/{{ media_app_name | capitalize }} -nobrowser -data=/srv/{{ media_app_name }}/data"
     media_app_app_srv:
       - data
     media_app_sys_srv:
       - downloads
       - movies
     media_app_service_bind_ro:
-      - "{{ media_app_app_dir }}:/srv/{{ media_app_name }}/app"
+      - "{{ media_app_app }}:/srv/{{ media_app_name }}/app"
     media_app_service_bind_rw:
-      - "{{ media_app_root_dir }}/downloads:/srv/downloads"
-      - "{{ media_app_root_dir }}/arr_suite/movies:/srv/movies"
-      - "{{ media_app_data_dir }}:/srv/{{ media_app_name }}/data"
+      - "{{ media_app_media_root }}/downloads:/srv/downloads"
+      - "{{ media_app_media_root }}/arr_suite/movies:/srv/movies"
+      - "{{ media_app_data }}:/srv/{{ media_app_name }}/data"
