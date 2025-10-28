@@ -8,8 +8,6 @@
         dest: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}.tar.gz"
         owner: "{{ media_app_owner }}"
         group: "{{ media_app_group }}"
-      register: updated_release
-      notify: Stop App - "{{ media_app_name | capitalize }}"
 
     - name: Create Release Archive Folder - "{{ media_app_name | capitalize }}"
       ansible.builtin.file:
@@ -25,6 +23,6 @@
         dest: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}"
         owner: "{{ media_app_owner }}"
         group: "{{ media_app_group }}"
+        remote_src: true
       args:
-        creates: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}/Radarr"
-      register: release
+        creates: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}/{{ media_app_name | capitalize }}"

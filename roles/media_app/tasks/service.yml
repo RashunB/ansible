@@ -3,7 +3,7 @@
     - name: Service File - "{{ media_app_name | capitalize }}"
       ansible.builtin.template:
         backup: true
-        src: "{{ media_app_sys_root }}/ansible/roles/media_app/templates/app_service.j2"
+        src: "app_service.j2"
         dest: "{{ media_app_service_file }}"
         owner: root
         group: root

@@ -1,9 +1,23 @@
-- name: Create a symbolic link - "{{ media_app_name | capitalize }}"
-  ansible.builtin.file:
-    src: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}/{{ media_app_name | capitalize }}"
-    dest: "{{ media_app_root }}"
-    owner: "{{ media_app_owner }}"
-    group: "{{ media_app_group }}"
-    state: link
-  notify: Restart App - "{{ media_app_name | capitalize }}"
-  when: not ansible_check_mode
+- name: Link App
+  block:
+    - name: Check Link Dest - "{{ media_app_name | capitalize }}"
+      ansible.builtin.stat:
+        path: "{{ media_app_app }}"
+        follow: false
+      register: link_stat
+
+    - name: Remove App Directory - "{{ media_app_name | capitalize }}"
+      ansible.builtin.file:
+        path: "{{ media_app_app }}"
+        state: absent
+      when: link_stat.stat.exists and not link_stat.stat.islnk
+
+    - name: Create a symbolic link - "{{ media_app_name | capitalize }}"
+      ansible.builtin.file:
+        src: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}/{{ media_app_name | capitalize }}"
+        dest: "{{ media_app_app }}"
+        owner: "{{ media_app_owner }}"
+        group: "{{ media_app_group }}"
+        state: link
+        force: true
+      notify: Restart App - "{{ media_app_name | capitalize }}"
