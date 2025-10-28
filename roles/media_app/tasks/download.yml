@@ -21,8 +21,8 @@
 
     - name: Decompress Release - "{{ media_app_name | capitalize }}"
       ansible.builtin.unarchive:
-        owner: "{{ media_app_owner }}"
-        group: "{{ media_app_group }}"
         src: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}.tar.gz"
         dest: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}"
+        owner: "{{ media_app_owner }}"
+        group: "{{ media_app_group }}"
       register: release

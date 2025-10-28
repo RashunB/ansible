@@ -14,10 +14,10 @@
   ansible.builtin.import_tasks: download.yml
   tags: [media_app, download]
 
-- name: Service
-  ansible.builtin.import_tasks: service.yml
-  tags: [media_app, service]
-
 - name: Link Release
   ansible.builtin.import_tasks: link.yml
   tags: [media_app, link]
+
+- name: Service
+  ansible.builtin.import_tasks: service.yml
+  tags: [media_app, service]

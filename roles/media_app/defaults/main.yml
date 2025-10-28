@@ -27,7 +27,7 @@ media_app_bind_rw:
 # Service and Dependencies
 media_app_service_file: "/etc/systemd/system/{{ media_app_name }}.service"
 media_app_service_name: "{{ media_app_name }}.service"
-media_app_wants: []
-media_app_after: []
+media_app_service_wants: []
+media_app_service_after: []
 media_app_packages: []
 media_app_service_exec:

@@ -1,13 +1,5 @@
 - name: Establish and Manage Directories - "{{ media_app_name | capitalize }}"
   block:
-    - name: App Root - "{{ media_app_name | capitalize }}"
-      ansible.builtin.file:
-        path: "{{ media_app_root }}"
-        state: directory
-        owner: "{{ media_app_owner }}"
-        group: "{{ media_app_group }}"
-        mode: "02775"
-
     - name: App Subdirectories - "{{ media_app_name | capitalize }}"
       ansible.builtin.file:
         path: "{{ media_app_root }}/{{ item }}"

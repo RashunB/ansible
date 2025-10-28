@@ -1,8 +1,8 @@
 [Unit]
 Description={{ media_app_name | capitalize }} Daemon
 RequiresMountsFor={{ media_app_dirs | default([]) | join(' ') }}
-Wants={{ media_app_wants | default([]) | join(' ') }}
-After={{ media_app_after | default([]) | join(' ') }}
+Wants={{ media_app_service_wants | default([]) | join(' ') }}
+After={{ media_app_service_after | default([]) | join(' ') }}
 
 [Service]
 Type=simple
@@ -56,11 +56,11 @@ SystemCallFilter=@system-service @basic-io @file-system @network-io @process @si
 SystemCallFilter=~ @mount @raw-io @reboot @swap @module @debug
 
 # Bind Mounts
-{% for path in media_app_bind_ro | default([]) %}
+{% for path in media_app_service_bind_ro | default([]) %}
 BindReadOnlyPaths={{ path }}
 {% endfor%}
 
-{% for path in media_app_bind_rw | default([]) %}
+{% for path in media_app_service_bind_rw | default([]) %}
 BindPaths={{ path }}
 {% endfor%}
 
