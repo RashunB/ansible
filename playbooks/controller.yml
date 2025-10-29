@@ -12,5 +12,6 @@
 
   roles:
     - common
-    - radarr
-    - sonarr
+    - { role: prowlarr, tags: ['prowlarr'] }
+    - { role: sonarr, tags: ['sonarr'] }
+    - { role: radarr, tags: ['radarr'] }

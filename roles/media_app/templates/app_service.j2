@@ -16,7 +16,9 @@ ExecStart={{ media_app_service_exec }}
 
 # Restart & shutdown behavior
 Restart=on-failure
-RestartSec=5s
+RestartSec=10s
+StartLimitIntervalSec=60
+StartLimitBurst=5
 KillMode=mixed
 KillSignal=SIGINT
 TimeoutStopSec=30s

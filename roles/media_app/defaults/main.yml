@@ -20,7 +20,10 @@ media_app_app: "{{ media_app_root }}/app"
 media_app_data: "{{ media_app_root }}/data"
 media_app_media_root: /tank/media
 media_app_library: "{{ media_app_media_root }}"
-media_app_app_srv: []
+media_app_app_srv:
+  - data
+  - app
+  - versions
 media_app_sys_srv: []
 
 # Service and Dependencies

@@ -24,8 +24,6 @@
       - sabnzbdplus.service
       - prowlarr.service
     media_app_service_exec: "{{ media_app_app }}/{{ media_app_name | capitalize }} -nobrowser -data=/srv/{{ media_app_name }}/data"
-    media_app_app_srv:
-      - data
     media_app_sys_srv:
       - downloads
       - tv

@@ -1,35 +1,24 @@
-- name: Radarr
+- name: Prowlarr
   ansible.builtin.include_role:
     name: media_app
   vars:
-    media_app_name: radarr
-    media_app_version: 5.26.2.10099
+    media_app_name: prowlarr
+    media_app_version: 2.0.5.5160
     media_app_release: "{{ media_app_name | capitalize }}.master.{{ media_app_version }}.linux-core-x64.tar.gz"
     media_app_download_url: "{{ media_app_github_url }}/v{{ media_app_version }}/{{ media_app_release }}"
-    media_app_github_url: https://github.com/Radarr/Radarr/releases/download
-    media_app_sha256: sha256:576d9e8cf4ee0f67d7986ce1e8a2accfbc999da96be3e9ae71daca2012bd55ba
+    media_app_github_url: https://github.com/Prowlarr/Prowlarr/releases/download
+    media_app_sha256: sha256:186a6518c2baaf558acec78a7d8b5e7f0ab0c21d088eef3995817ca6a9820590
     media_app_packages:
       - curl
       - sqlite3
     media_app_service_dirs:
       - "{{ media_app_root }}"
-      - "{{ media_app_media_root }}/downloads"
-      - "{{ media_app_media_root }}/arr_suite/movies"
     media_app_service_wants:
       - network-online.target
-      - sabnzbdplus.service
-      - prowlarr.service
     media_app_service_after:
       - network-online.target
-      - sabnzbdplus.service
-      - prowlarr.service
     media_app_service_exec: "{{ media_app_app }}/{{ media_app_name | capitalize }} -nobrowser -data=/srv/{{ media_app_name }}/data"
-    media_app_sys_srv:
-      - downloads
-      - movies
     media_app_service_bind_ro:
       - "{{ media_app_app }}:/srv/{{ media_app_name }}/app"
     media_app_service_bind_rw:
-      - "{{ media_app_media_root }}/downloads:/srv/downloads"
-      - "{{ media_app_media_root }}/arr_suite/movies:/srv/movies"
       - "{{ media_app_data }}:/srv/{{ media_app_name }}/data"
