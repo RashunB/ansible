@@ -6,3 +6,4 @@
 .vagrant/
 collections/
 !.ansible/collections/
+*.code-workspace
