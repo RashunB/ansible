@@ -1,3 +1,13 @@
+## WRITE LOCK
+
+**Do not write, edit, or commit any file in this repo without an explicit
+"implement" instruction from the user.**
+
+Planning, exploring, and discussing are always safe.
+Only proceed with repo changes when the user says to implement.
+
+-----
+
 # CLAUDE.md — Ansible Media Stack (Home Server)
 
 ## Project Location
