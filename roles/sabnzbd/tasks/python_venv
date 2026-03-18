@@ -1,0 +1,16 @@
+# install os venv package for python: python3-venv
+# Execute command, check for ansible builtins for making venvs
+# -- should handle directory creation
+# Set perms
+# install packages from requirements file
+
+- name: Install Python3-venv - "{{ media_app_exec_name }}"
+  ansible.builtin.package:
+    name: python3-venv
+    state: present
+
+- name: Create Virtual Environment - "{{ media_app_exec_name }}"
+  ansible.builtin.pip:
+    virtualenv: "{{ media_app_python_venv }}"
+    requirements: "{{ media_app_app }}/requirements.txt"
+    state: present
