@@ -25,4 +25,4 @@
         group: "{{ media_app_group }}"
         remote_src: true
       args:
-        creates: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}/{{ media_app_exec_name }}"
+        creates: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}/{{ media_app_archive_name }}"

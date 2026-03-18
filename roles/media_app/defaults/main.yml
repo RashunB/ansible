@@ -11,6 +11,7 @@ media_app_version:
 media_app_download_url:
 media_app_github_url:
 media_app_sha256:
+media_app_archive_name: {{ media_app_exec_name }}
 media_app_release:
 
 # Folders
