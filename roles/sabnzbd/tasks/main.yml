@@ -6,16 +6,15 @@
 - name: Sabnzbd
   ansible.builtin.include_role:
     name: media_app
+    state: present
   vars:
     media_app_name: sabnzbd
     media_app_exec_name: SABnzbd
     media_app_version: 4.5.3
+    media_app_release: "{{ media_app_exec_name }}-{{ media_app_version }}-src.tar.gz"
     media_app_download_url: "{{ media_app_github_url }}/{{ media_app_version }}/{{ media_app_release }}"
     media_app_github_url: https://github.com/{{ media_app_name }}/{{ media_app_name }}/releases/download
     media_app_sha256: sha256:c745eeb9f66939f9257ad06042b63fac575aea44604bcdf90bbc8a33cd13e4a0
-    media_app_archive_name: "{{ media_app_exec_name }}-{{ media_app_version }}"
-    media_app_release: "{{ media_app_exec_name }}-{{ media_app_version }}-src.tar.gz"
-    
     media_app_packages:
       - par2-turbo
     media_app_service_dirs:
@@ -28,7 +27,8 @@
     media_app_service_after:
       - network-online.target
     media_app_service_port: 8082
-    media_app_service_exec: "/srv/{{ media_app_name }}/app/venv/bin/python /srv/{{ media_app_name }}/app/src/{{ media_app_exec_name }}.py --server {{ service_bind_ip }}:{{ media_app_service_port }} --config-file /srv/{{ media_app_name }}/data/config/config.ini --disable-file-log --console"
+    media_app_python_venv: "/srv/{{ media_app_name }}/app/venv/bin/python"
+    media_app_service_exec: "{{ media_app_python_venv }} /srv/{{ media_app_name }}/app/src/{{ media_app_exec_name }}.py --server {{ service_bind_ip }}:{{ media_app_service_port }} --config-file /srv/{{ media_app_name }}/data/config/config.ini --disable-file-log --console"
     media_app_sys_srv:
       - downloads
       - downloads/incomplete
