@@ -1,5 +1,5 @@
-- name: Controller Baseline
-  hosts: control
+- name: Media_Platform Baseline
+  hosts: media
   become: false
   gather_facts: true
 
