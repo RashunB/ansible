@@ -6,12 +6,10 @@
 - name: Sabnzbd
   ansible.builtin.include_role:
     name: media_app
-    state: present
   vars:
     media_app_name: sabnzbd
     media_app_exec_name: SABnzbd
     media_app_version: 4.5.3
-    media_app_release: "{{ media_app_exec_name }}-{{ media_app_version }}-src.tar.gz"
     media_app_download_url: "{{ media_app_github_url }}/{{ media_app_version }}/{{ media_app_release }}"
     media_app_github_url: https://github.com/{{ media_app_name }}/{{ media_app_name }}/releases/download
     media_app_sha256: sha256:c745eeb9f66939f9257ad06042b63fac575aea44604bcdf90bbc8a33cd13e4a0
