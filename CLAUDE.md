@@ -14,7 +14,7 @@ Only proceed with repo changes when the user says to implement.
 
 ```
 # UPDATE THIS PATH BEFORE USE
-~/projects/ansible-main (placeholder)
+C:\project_workspace\repos
 ```
 
 ## What This Project Is

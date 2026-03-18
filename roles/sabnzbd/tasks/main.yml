@@ -6,7 +6,6 @@
 - name: Sabnzbd
   ansible.builtin.include_role:
     name: media_app
-    state: present
   vars:
     media_app_name: sabnzbd
     media_app_exec_name: SABnzbd
