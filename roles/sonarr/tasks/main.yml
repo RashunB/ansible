@@ -1,4 +1,4 @@
-- name: Radarr
+- name: Sonarr
   ansible.builtin.include_role:
     name: media_app
   vars:
