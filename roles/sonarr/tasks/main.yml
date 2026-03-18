@@ -4,7 +4,7 @@
   vars:
     media_app_name: sonarr
     media_app_version: 4.0.15.2941
-    media_app_release: "{{ media_app_name | capitalize }}.main.{{ media_app_version }}.linux-x64.tar.gz"
+    media_app_release: "{{ media_app_exec_name }}.main.{{ media_app_version }}.linux-x64.tar.gz"
     media_app_github_url: https://github.com/Sonarr/Sonarr/releases/download
     media_app_download_url: "{{ media_app_github_url }}/v{{ media_app_version }}/{{ media_app_release }}"
     media_app_sha256: sha256:80d693b013dbec8cebc19c936bc1fcdcf876e3aa62f02757216fdf86e0c9fa91
@@ -23,7 +23,7 @@
       - network-online.target
       - sabnzbd.service
       - prowlarr.service
-    media_app_service_exec: "{{ media_app_app }}/{{ media_app_name | capitalize }} -nobrowser -data=/srv/{{ media_app_name }}/data"
+    media_app_service_exec: "{{ media_app_app }}/{{ media_app_exec_name }} -nobrowser -data=/srv/{{ media_app_name }}/data"
     media_app_sys_srv:
       - downloads
       - tv

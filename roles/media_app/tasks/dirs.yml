@@ -1,6 +1,6 @@
-- name: Establish and Manage Directories - "{{ media_app_name | capitalize }}"
+- name: Establish and Manage Directories - "{{ media_app_exec_name }}"
   block:
-    - name: App Subdirectories - "{{ media_app_name | capitalize }}"
+    - name: App Subdirectories - "{{ media_app_exec_name }}"
       ansible.builtin.file:
         path: "{{ media_app_root }}/{{ item }}"
         state: directory
@@ -9,7 +9,7 @@
         mode: "02775"
       loop: "{{ media_app_app_srv }}"
 
-    - name: /srv Root - "{{ media_app_name | capitalize }}"
+    - name: /srv Root - "{{ media_app_exec_name }}"
       ansible.builtin.file:
         path: "/srv"
         state: directory
@@ -17,7 +17,7 @@
         group: root
         mode: "0755"
 
-    - name: /srv System Subdirectories - "{{ media_app_name | capitalize }}"
+    - name: /srv System Subdirectories - "{{ media_app_exec_name }}"
       ansible.builtin.file:
         path: "/srv/{{ item }}"
         state: directory
@@ -26,7 +26,7 @@
         mode: "0755"
       loop: "{{ media_app_sys_srv }}"
 
-    - name: /srv App Root - "{{ media_app_name | capitalize }}"
+    - name: /srv App Root - "{{ media_app_exec_name }}"
       ansible.builtin.file:
         path: "/srv/{{ media_app_name }}"
         state: directory
@@ -34,7 +34,7 @@
         group: root
         mode: "0755"
 
-    - name: /srv App Subdirectories - "{{ media_app_name | capitalize }}"
+    - name: /srv App Subdirectories - "{{ media_app_exec_name }}"
       ansible.builtin.file:
         path: "/srv/{{ media_app_name }}/{{ item }}"
         state: directory

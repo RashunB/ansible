@@ -1,5 +1,5 @@
 [Unit]
-Description={{ media_app_name | capitalize }} Daemon
+Description={{ media_app_exec_name }} Daemon
 RequiresMountsFor={{ media_app_service_dirs | default([]) | join(' ') }}
 Wants={{ media_app_service_wants | default([]) | join(' ') }}
 After={{ media_app_service_after | default([]) | join(' ') }}

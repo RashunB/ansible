@@ -7,4 +7,5 @@
 collections/
 !.ansible/collections/
 *.code-workspace
+*CLAUDE.md
 CLAUDE.md

@@ -15,3 +15,4 @@
     - { role: prowlarr, tags: ['prowlarr'] }
     - { role: sonarr, tags: ['sonarr'] }
     - { role: radarr, tags: ['radarr'] }
+    - { role: sabnzbd, tags: ['sabnzbd'] }

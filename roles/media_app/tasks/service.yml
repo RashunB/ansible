@@ -1,6 +1,6 @@
-- name: Setup Service - "{{ media_app_name | capitalize }}"
+- name: Setup Service - "{{ media_app_exec_name }}"
   block:
-    - name: Service File - "{{ media_app_name | capitalize }}"
+    - name: Service File - "{{ media_app_exec_name }}"
       ansible.builtin.template:
         backup: true
         src: "app_service.j2"
@@ -9,9 +9,9 @@
         group: root
         mode: "0644"
       register: service
-      notify: Restart App - "{{ media_app_name | capitalize }}"
+      notify: Restart App - "{{ media_app_exec_name }}"
 
-- name: Start App - "{{ media_app_name | capitalize }}"
+- name: Start App - "{{ media_app_exec_name }}"
   ansible.builtin.systemd_service:
     name: "{{ media_app_service_name }}"
     state: started

@@ -1,1 +1,2 @@
 appdata: /tank/appdata
+service_bind_ip: 192.168.0.63

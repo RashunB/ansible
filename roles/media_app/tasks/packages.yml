@@ -1,4 +1,4 @@
-- name: Install Packages - "{{ media_app_name | capitalize }}"
+- name: Install Packages - "{{ media_app_exec_name }}"
   ansible.builtin.package:
     name: "{{ media_app_packages }}"
     state: present

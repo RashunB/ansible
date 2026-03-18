@@ -1,6 +1,6 @@
-- name: Pull Updated Version - "{{ media_app_name | capitalize }}"
+- name: Pull Updated Version - "{{ media_app_exec_name }}"
   block:
-    - name: Download Release - "{{ media_app_name | capitalize }}"
+    - name: Download Release - "{{ media_app_exec_name }}"
       ansible.builtin.get_url:
         url: "{{ media_app_download_url }}"
         mode: "0644"
@@ -9,7 +9,7 @@
         owner: "{{ media_app_owner }}"
         group: "{{ media_app_group }}"
 
-    - name: Create Release Archive Folder - "{{ media_app_name | capitalize }}"
+    - name: Create Release Archive Folder - "{{ media_app_exec_name }}"
       ansible.builtin.file:
         path: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}"
         state: directory
@@ -17,7 +17,7 @@
         group: "{{ media_app_group }}"
         mode: "02775"
 
-    - name: Decompress Release - "{{ media_app_name | capitalize }}"
+    - name: Decompress Release - "{{ media_app_exec_name }}"
       ansible.builtin.unarchive:
         src: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}.tar.gz"
         dest: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}"
@@ -25,4 +25,4 @@
         group: "{{ media_app_group }}"
         remote_src: true
       args:
-        creates: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}/{{ media_app_name | capitalize }}"
+        creates: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}/{{ media_app_exec_name }}"

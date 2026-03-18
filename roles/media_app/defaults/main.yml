@@ -1,5 +1,6 @@
 # App and Ownership
 media_app_name:
+media_app_exec_name: {{ media_app_exec_name }}
 media_app_service_acct: arrservice
 media_app_owner: "{{ media_app_name }}"
 media_app_group: media
