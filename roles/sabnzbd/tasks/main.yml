@@ -1,3 +1,7 @@
+- name: Capture Role Path
+  ansible.builtin.set_fact:
+    sabnzbd_role_path: "{{ role_path }}"
+
 - name: Add Temp Repo
   ansible.builtin.apt_repository:
     repo: ppa:jcfp/sab-addons
@@ -27,8 +31,14 @@
     media_app_service_after:
       - network-online.target
     media_app_service_port: 8082
-    media_app_python_venv: "/srv/{{ media_app_name }}/app/venv/bin/python"
-    media_app_service_exec: "{{ media_app_python_venv }} /srv/{{ media_app_name }}/app/src/{{ media_app_exec_name }}.py --server {{ media_app_service_ip }}:{{ media_app_service_port }} --config-file /srv/{{ media_app_name }}/data/config/config.ini --disable-file-log --console"
+    media_app_python_venv: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}/{{ media_app_archive_name }}/venv"
+    media_app_python_srv: "/srv/{{ media_app_name }}/app/venv/bin/python"
+    media_app_service_exec: >-
+      {{ media_app_python_srv }} /srv/{{ media_app_name }}/app/{{ media_app_exec_name }}.py
+      --server {{ media_app_service_ip }}:{{ media_app_service_port }}
+      --config-file /srv/{{ media_app_name }}/data/config/config.ini
+      --disable-file-log
+      --console
     media_app_sys_srv:
       - downloads
       - downloads/incomplete
@@ -38,4 +48,4 @@
     media_app_service_bind_rw:
       - "{{ media_app_data }}:/srv/{{ media_app_name }}/data"
       - "{{ media_app_media_root }}/downloads:/srv/downloads"
-    
+    media_app_pre_service_hook: "{{ sabnzbd_role_path }}/tasks/python_venv.yml"

@@ -18,6 +18,11 @@
   ansible.builtin.import_tasks: link.yml
   tags: [media_app, link]
 
+- name: Pre-Service Hook
+  ansible.builtin.include_tasks: "{{ media_app_pre_service_hook }}"
+  when: media_app_pre_service_hook is defined
+  tags: [media_app, pre_service]
+
 - name: Service
   ansible.builtin.import_tasks: service.yml
   tags: [media_app, service]

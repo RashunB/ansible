@@ -8,7 +8,7 @@
         owner: root
         group: root
         mode: "0644"
-      register: service
+      register: media_app_service
       notify: Restart App - "{{ media_app_exec_name }}"
 
 - name: Start App - "{{ media_app_exec_name }}"

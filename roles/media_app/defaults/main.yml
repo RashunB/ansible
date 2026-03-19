@@ -38,3 +38,4 @@ media_app_service_bind_rw: []
 media_app_service_exec:
 media_app_service_dirs:
 media_app_service_ip: "{{ service_bind_ip }}"
+media_app_pre_service_hook:

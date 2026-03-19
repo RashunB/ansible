@@ -3,6 +3,7 @@ Description={{ media_app_exec_name }} Daemon
 RequiresMountsFor={{ media_app_service_dirs | default([]) | join(' ') }}
 Wants={{ media_app_service_wants | default([]) | join(' ') }}
 After={{ media_app_service_after | default([]) | join(' ') }}
+StartLimitIntervalSec=60
 
 [Service]
 Type=simple
@@ -11,13 +12,11 @@ Group={{ media_app_group }}
 UMask=0002
 WorkingDirectory=/srv/{{ media_app_name }}
 RuntimeDirectory={{ media_app_name }}
-
 ExecStart={{ media_app_service_exec }}
 
 # Restart & shutdown behavior
 Restart=on-failure
 RestartSec=10s
-StartLimitIntervalSec=60
 StartLimitBurst=5
 KillMode=mixed
 KillSignal=SIGINT
