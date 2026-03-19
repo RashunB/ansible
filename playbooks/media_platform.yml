@@ -13,6 +13,7 @@
   roles:
     - common
     - { role: prowlarr, tags: ['prowlarr'] }
+    - { role: sabnzbd, tags: ['sabnzbd'] }
     - { role: sonarr, tags: ['sonarr'] }
     - { role: radarr, tags: ['radarr'] }
-    - { role: sabnzbd, tags: ['sabnzbd'] }
+    - { role: bazarr, tags: ['bazarr'] }
