@@ -17,8 +17,9 @@ media_app_release:
 # Folders
 media_app_sys_root: "{{ appdata }}"
 media_app_root: "{{ media_app_sys_root }}/{{ media_app_name }}"
+media_app_app: "{{ media_app_root }}/app"
 media_app_versions: "{{ media_app_root }}/versions"
-media_app_app: "{{ media_app_root }}/app/{{ media_app_exec_name }}"
+media_app_exec_root: "{{ media_app_root }}/app/{{ media_app_exec_name }}"
 media_app_data: "{{ media_app_root }}/data"
 media_app_media_root: /tank/media
 media_app_library: "{{ media_app_media_root }}"

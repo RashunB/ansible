@@ -19,6 +19,6 @@
       - network-online.target
     media_app_service_exec: "/srv/{{ media_app_name }}/app/{{ media_app_exec_name }}/{{ media_app_exec_name }} -nobrowser -data=/srv/{{ media_app_name }}/data"
     media_app_service_bind_ro:
-      - "{{ media_app_app }}:/srv/{{ media_app_name }}/app"
+      - "{{ media_app_exec_root }}:/srv/{{ media_app_name }}/app"
     media_app_service_bind_rw:
       - "{{ media_app_data }}:/srv/{{ media_app_name }}/data"

@@ -6,7 +6,7 @@
 - name: Create Virtual Environment - "{{ media_app_exec_name }}"
   ansible.builtin.pip:
     virtualenv: "{{ media_app_python_venv }}"
-    requirements: "{{ media_app_app }}/requirements.txt"
+    requirements: "{{ media_app_python_reqs }}"
     state: present
 
 - name: Set Virtual Environment Ownership - "{{ media_app_exec_name }}"

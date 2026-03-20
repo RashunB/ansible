@@ -8,7 +8,7 @@
 
     - name: Remove App Directory - "{{ media_app_exec_name }}"
       ansible.builtin.file:
-        path: "{{ media_app_app }}"
+        path: "{{ media_app_exec_root }}"
         state: absent
       when: media_app_link_stat.stat.exists and not media_app_link_stat.stat.islnk
 
