@@ -26,14 +26,14 @@
         state: directory
         owner: root
         group: root
-        mode: "0644"
+        mode: "0755"
 
     - name: Drop Journald Config Fragment
       ansible.builtin.copy:
         dest: /etc/systemd/journald.conf.d/10-persistent.conf
         owner: root
         group: root
-        mode: "0755"
+        mode: "0644"
         content: |
           [Journal]
           Storage=persistent
