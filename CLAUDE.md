@@ -32,6 +32,7 @@ ansible-playbook playbooks/media_platform.yml --tags prowlarr
 ansible-playbook playbooks/media_platform.yml --tags sonarr
 ansible-playbook playbooks/media_platform.yml --tags radarr
 ansible-playbook playbooks/media_platform.yml --tags sabnzbd
+ansible-playbook playbooks/media_platform.yml --tags bazarr
 ```
 
 ### Run a subset of the media_app pipeline for a specific service
@@ -63,33 +64,67 @@ ansible-galaxy collection install -r requirements.yml
 
 ### The `media_app` Role — Core Abstraction
 
-All service roles (prowlarr, sonarr, radarr, sabnzbd) are thin wrappers. Each calls `include_role: name: media_app` with service-specific variable overrides. `media_app` executes a six-stage pipeline defined in `roles/media_app/tasks/main.yml`:
+All service roles (prowlarr, sonarr, radarr, sabnzbd, bazarr) are thin wrappers. Each calls `include_role: name: media_app` with service-specific variable overrides. `media_app` executes a six-stage pipeline defined in `roles/media_app/tasks/main.yml`:
 
 | Stage | Task File | Purpose |
 |---|---|---|
 | 1 | `packages.yml` | Install system packages |
-| 2 | `users.yml` | Create shared `media` group + per-app service user |
+| 2 | `users.yml` | Create shared `media` group + per-app service user + `arrservice` shared account |
 | 3 | `dirs.yml` | Scaffold `/tank/appdata/{app}/` and `/srv/{app}/` trees |
 | 4 | `download.yml` | Fetch release tarball, verify SHA256, decompress versioned archive |
-| 5 | `link.yml` | Create/update symlink from `appdata/{app}/app` → versioned binary |
+| 5 | `link.yml` | Symlink `appdata/{app}/app` → versioned directory |
 | 6 | `service.yml` | Render systemd unit via `templates/app_service.j2`, start service |
 
-If `media_app_pre_service_hook` is defined, that task file runs between stages 5 and 6. SABnzbd uses this for Python venv creation (`roles/sabnzbd/tasks/python_venv.yml`).
+If `media_app_pre_service_hook` is defined, that task file runs between stages 5 and 6. SABnzbd and Bazarr use this for Python venv creation.
 
 ### Path Structure
 
 ```
-/tank/appdata/{app}/             # ZFS dataset root
-  versions/                      # Extracted versioned releases
-  app  ->  versions/{name}_{ver}/{archive_name}/
-                                 # Active symlink — relink to roll back
-  data/                          # Persistent app config
+/tank/appdata/{app}/
+  versions/
+    {app}_{ver}/                    # Extracted version root
+      {ExecName}/                   # Binary apps: archive subdirectory (exec_root)
+      {script}.py + venv/           # Python apps: script + venv at version root
+  app  ->  versions/{app}_{ver}/   # Active symlink — relink to roll back
+  data/                             # Persistent app config
 
-/srv/{app}/                      # Runtime working tree (bind-mounted into unit)
-  app                            # Symlink mirroring appdata/{app}/app
-  data/                          # App config (bind from appdata)
-  downloads/                     # Where applicable (sonarr, radarr, sabnzbd)
+/srv/{app}/                         # Runtime working tree (bind-mounted into unit)
+  app                               # Bind target (exec_root or app, depending on app type)
+  data/
+  downloads/                        # Where applicable
 ```
+
+**Key variable**: `media_app_exec_root = {{ media_app_root }}/app/{{ media_app_exec_name }}` — resolves through the `app` symlink to the exec directory inside the version folder. Binary apps use this as the bind mount source. Python apps with a nested archive (SABnzbd) override it explicitly; Python apps with a flat source layout (Bazarr) bind the `app` symlink directly.
+
+### App-Specific Patterns
+
+#### Binary *arr apps (Prowlarr, Sonarr, Radarr)
+```
+app → versions/{app}_{ver}/           # Symlink
+app/{ExecName}/                       # exec_root — archive contents
+app/{ExecName}/{ExecName}             # Actual binary
+```
+Bind: `exec_root` → `/srv/{app}/app` (read-only)
+ExecStart: `/srv/{app}/app/{ExecName}/{ExecName} -nobrowser -data=/srv/{app}/data`
+
+#### SABnzbd (Python source, nested archive)
+```
+app → versions/sabnzbd_4.5.3/        # Symlink
+app/SABnzbd-4.5.3/                    # exec_root (overridden: archive_name subfolder)
+app/SABnzbd-4.5.3/venv/              # Python venv (created by pre_service_hook)
+```
+Bind: `exec_root` → `/srv/sabnzbd/app` (read-only)
+ExecStart: `/srv/sabnzbd/app/venv/bin/python /srv/sabnzbd/app/SABnzbd.py --server {ip}:8082 ...`
+PPA `ppa:jcfp/sab-addons` added before `media_app` include to supply `par2-turbo`.
+
+#### Bazarr (Python source, flat layout)
+```
+app → versions/bazarr_1.5.4/         # Symlink
+app/bazarr.py                         # Script entry point
+app/venv/                             # Python venv (created by pre_service_hook)
+```
+Bind: `app` → `/srv/bazarr/app` (read-write — Python needs write access for bytecode)
+ExecStart: `/srv/bazarr/app/venv/bin/python /srv/bazarr/app/bazarr.py --config /srv/bazarr/data`
 
 ### Adding a New App Role
 
@@ -100,12 +135,12 @@ If `media_app_pre_service_hook` is defined, that task file runs between stages 5
 Mandatory variables per app:
 
 ```yaml
-media_app_name:              # e.g. bazarr
-media_app_exec_name:         # executable name inside archive (may differ from app name)
+media_app_name:              # e.g. jellyfin
+media_app_exec_name:         # executable/archive name (defaults to capitalize(name))
 media_app_version:
 media_app_download_url:
 media_app_sha256:            # sha256:<hex>
-media_app_archive_name:      # directory name inside the extracted tarball
+media_app_archive_name:      # directory name inside the extracted tarball (if differs from exec_name)
 media_app_owner:             # dedicated service user
 media_app_service_exec:      # full ExecStart string
 media_app_service_bind_ro:   # list of "src:dest" read-only bind mounts
@@ -130,22 +165,12 @@ media_app_service_bind_rw:   # list of "src:dest" read-write bind mounts
 network-online.target
        └── prowlarr.service
        └── sabnzbd.service
+       └── bazarr.service
               └── sonarr.service  (Wants: sabnzbd + prowlarr)
               └── radarr.service  (Wants: sabnzbd + prowlarr)
 ```
 
-### SABnzbd — Python Source Deployment
-
-SABnzbd differs from the *arr apps: it ships as a Python source tarball. The pre-service hook (`python_venv.yml`) installs `python3-virtualenv`, creates a venv inside the versioned archive directory, and installs `requirements.txt` via pip before the systemd unit is deployed.
-
-```
-ExecStart: /srv/sabnzbd/app/venv/bin/python /srv/sabnzbd/app/SABnzbd.py \
-           --server 192.168.0.63:8082 \
-           --config-file /srv/sabnzbd/data/config/config.ini \
-           --disable-file-log --console
-```
-
-The PPA `ppa:jcfp/sab-addons` is added before the `media_app` include to supply `par2-turbo`.
+Playbook role order: `common → prowlarr → sabnzbd → sonarr → radarr → bazarr`
 
 ### Known Portability Issue
 
@@ -163,9 +188,10 @@ Single host (`media_platform`), `ansible_connection=local`. Ansible runs on the 
 
 | Phase | Focus | Status |
 |---|---|---|
-| 1 | Complete codification: Bazarr, Jellyfin, Recyclarr, ZFS role, `ansible.cfg` path fixes | Current |
+| 1 | Complete codification: Jellyfin, Recyclarr, ZFS role, `ansible.cfg` path fixes | Current |
 | 2 | Destructive rebuild validation — full stack teardown and replay | Next |
 | 3 | Molecule unit tests per role | Deferred |
 | 4 | CI/CD, observability, Terraform, PostgreSQL migration, Ansible Vault | Post-validation |
 
-No secrets are currently managed by Ansible. The *arr apps configure API keys through their web UIs post-deployment. Vault infrastructure is deferred until Phase 4 (PostgreSQL migration requires database credentials).
+**Working roles**: prowlarr, sonarr, radarr, sabnzbd, bazarr.
+No secrets are currently managed by Ansible. API keys are configured through web UIs post-deployment. Vault infrastructure is deferred until Phase 4.
