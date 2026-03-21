@@ -1,179 +1,171 @@
-## WRITE LOCK
+# CLAUDE.md
 
-**Do not write, edit, or commit any file in this repo without an explicit
-"implement" instruction from the user.**
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Planning, exploring, and discussing are always safe.
-Only proceed with repo changes when the user says to implement.
+## Write Lock
 
------
+Do not write, edit, or commit any file in this repo without an explicit "implement" instruction from the user. Planning, exploring, and discussing are always safe.
 
-# CLAUDE.md — Ansible Media Stack (Home Server)
+---
 
-## Project Location
+## Behavior
+
+- **Tone**: professional, precise, technically rigorous — no emojis
+- **Default environment**: Ubuntu, bare-metal server, local Ansible execution
+- **Repository standard**: GitHub
+- **Before implementing**: validate ambiguous requests rather than acting on assumptions
+- **Do not suggest** Docker-based rewrites — the systemd + binary deployment pattern is intentional
+- **Do not suggest** skipping phases — the ordered progression (codify → validate destructively → test → tooling) is deliberate
+
+---
+
+## Common Commands
+
+### Run the full stack
+```
+ansible-playbook playbooks/media_platform.yml
+```
+
+### Run a single service (tags match role names)
+```
+ansible-playbook playbooks/media_platform.yml --tags prowlarr
+ansible-playbook playbooks/media_platform.yml --tags sonarr
+ansible-playbook playbooks/media_platform.yml --tags radarr
+ansible-playbook playbooks/media_platform.yml --tags sabnzbd
+```
+
+### Run a subset of the media_app pipeline for a specific service
+```
+ansible-playbook playbooks/media_platform.yml --tags "prowlarr,download"
+ansible-playbook playbooks/media_platform.yml --tags "sonarr,service"
+```
+Available pipeline tags: `packages`, `users`, `dirs`, `download`, `link`, `pre_service`, `service`
+
+### Bootstrap a new host (no Python dependency required)
+```
+ansible-playbook playbooks/bootstrap.yml
+```
+
+### Lint
+```
+ansible-lint
+pre-commit run --all-files
+```
+
+### Install collections
+```
+ansible-galaxy collection install -r requirements.yml
+```
+
+---
+
+## Architecture
+
+### The `media_app` Role — Core Abstraction
+
+All service roles (prowlarr, sonarr, radarr, sabnzbd) are thin wrappers. Each calls `include_role: name: media_app` with service-specific variable overrides. `media_app` executes a six-stage pipeline defined in `roles/media_app/tasks/main.yml`:
+
+| Stage | Task File | Purpose |
+|---|---|---|
+| 1 | `packages.yml` | Install system packages |
+| 2 | `users.yml` | Create shared `media` group + per-app service user |
+| 3 | `dirs.yml` | Scaffold `/tank/appdata/{app}/` and `/srv/{app}/` trees |
+| 4 | `download.yml` | Fetch release tarball, verify SHA256, decompress versioned archive |
+| 5 | `link.yml` | Create/update symlink from `appdata/{app}/app` → versioned binary |
+| 6 | `service.yml` | Render systemd unit via `templates/app_service.j2`, start service |
+
+If `media_app_pre_service_hook` is defined, that task file runs between stages 5 and 6. SABnzbd uses this for Python venv creation (`roles/sabnzbd/tasks/python_venv.yml`).
+
+### Path Structure
 
 ```
-# UPDATE THIS PATH BEFORE USE
-C:\project_workspace\repos
+/tank/appdata/{app}/             # ZFS dataset root
+  versions/                      # Extracted versioned releases
+  app  ->  versions/{name}_{ver}/{archive_name}/
+                                 # Active symlink — relink to roll back
+  data/                          # Persistent app config
+
+/srv/{app}/                      # Runtime working tree (bind-mounted into unit)
+  app                            # Symlink mirroring appdata/{app}/app
+  data/                          # App config (bind from appdata)
+  downloads/                     # Where applicable (sonarr, radarr, sabnzbd)
 ```
 
-## What This Project Is
+### Adding a New App Role
 
-An Ansible-based Infrastructure as Code implementation for a media automation stack running on a home server. Critically: **Ansible is not the deployment tool — the stack already exists and runs.** Ansible is the codification and reproducibility layer built after the fact to:
+1. Create `roles/{appname}/tasks/main.yml`
+2. Call `include_role: name: media_app` — full parameter reference in `roles/media_app/defaults/main.yml`
+3. Add the role to `playbooks/media_platform.yml` with a tag matching the role name
 
-- Enable full disaster recovery (rebuild from scratch in ~1 hour)
-- Prevent configuration drift over time
-- Document the system as code (playbooks describe desired state)
-- Serve as a portfolio demonstration of IaC skills
+Mandatory variables per app:
 
-This distinction matters for how the project is discussed and extended.
+```yaml
+media_app_name:              # e.g. bazarr
+media_app_exec_name:         # executable name inside archive (may differ from app name)
+media_app_version:
+media_app_download_url:
+media_app_sha256:            # sha256:<hex>
+media_app_archive_name:      # directory name inside the extracted tarball
+media_app_owner:             # dedicated service user
+media_app_service_exec:      # full ExecStart string
+media_app_service_bind_ro:   # list of "src:dest" read-only bind mounts
+media_app_service_bind_rw:   # list of "src:dest" read-write bind mounts
+```
 
------
+### systemd Hardening
 
-## Current Ecosystem
+`roles/media_app/templates/app_service.j2` enforces strict isolation on every unit:
 
-### In Ansible (codified)
+- `ProtectSystem=strict`, `PrivateTmp`, `PrivateDevices`, `ProtectHome`
+- `NoNewPrivileges`, `CapabilityBoundingSet=` (empty), `AmbientCapabilities=` (empty)
+- `RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX`
+- `SystemCallFilter` whitelist (`@system-service @basic-io @file-system @network-io @process @signal @memlock`); explicit denylist for `@mount @raw-io @reboot @swap @module @debug`
+- `BindReadOnlyPaths` / `BindPaths` from `media_app_service_bind_ro` / `media_app_service_bind_rw`
 
-- **Prowlarr** — indexer management
-- **Sonarr** — TV automation
-- **Radarr** — movie automation
+**Consequence**: any path not listed in the bind mount variables will be inaccessible to the process at runtime. Always enumerate every path the process reads or writes.
 
-### Running but not yet in Ansible (codification gap)
+### Service Dependency Chain
 
-- **SABnzbd** — Usenet download client
-- **Bazarr** — subtitle management (integrates with Sonarr/Radarr)
-- **Jellyfin** — media server
-- **Recyclarr** — TRaSH Guides quality profile sync (adhoc, not scheduled)
+```
+network-online.target
+       └── prowlarr.service
+       └── sabnzbd.service
+              └── sonarr.service  (Wants: sabnzbd + prowlarr)
+              └── radarr.service  (Wants: sabnzbd + prowlarr)
+```
 
-### Infrastructure
+### SABnzbd — Python Source Deployment
 
-- ZFS storage (`tank/appdata/` dataset structure)
-- systemd service management with hardened unit files
-- Ansible roles with Jinja2 templating
+SABnzbd differs from the *arr apps: it ships as a Python source tarball. The pre-service hook (`python_venv.yml`) installs `python3-virtualenv`, creates a venv inside the versioned archive directory, and installs `requirements.txt` via pip before the systemd unit is deployed.
 
------
+```
+ExecStart: /srv/sabnzbd/app/venv/bin/python /srv/sabnzbd/app/SABnzbd.py \
+           --server 192.168.0.63:8082 \
+           --config-file /srv/sabnzbd/data/config/config.ini \
+           --disable-file-log --console
+```
 
-## Architecture Notes
+The PPA `ppa:jcfp/sab-addons` is added before the `media_app` include to supply `par2-turbo`.
 
-### Role Structure
+### Known Portability Issue
 
-The `media_app` role is the core abstraction. Each app role (prowlarr, sonarr, radarr) calls it with app-specific parameters rather than duplicating logic. This pattern makes adding new services straightforward and is the template for codifying the remaining services.
+`ansible.cfg` hardcodes all paths to `/tank/appdata/ansible/` (inventory, roles_path, collections_path, fact cache). Converting these to relative paths is a Phase 1 priority.
 
-Task files follow a consistent split:
+---
 
-- `packages.yml` — system package installation
-- `users.yml` — service user/group creation
-- `dirs.yml` — directory scaffolding
-- `download.yml` — binary/release fetching
-- `link.yml` — symlink-based version management (blue-green style)
-- `service.yml` — systemd unit deployment
+## Inventory
 
-### ZFS Integration
+Single host (`media_platform`), `ansible_connection=local`. Ansible runs on the same machine it configures — no SSH involved. Host vars set `appdata=/tank/appdata` and `service_bind_ip=192.168.0.63`.
 
-Data lives under `tank/appdata/`. Paths are currently hardcoded in `ansible.cfg` — converting to relative paths is an early priority to make the repo portable.
+---
 
-### Symlink Version Management
+## Roadmap Phase Reference
 
-Releases are downloaded and versioned, with a symlink pointing to the active version. Enables rollbacks by relinking.
+| Phase | Focus | Status |
+|---|---|---|
+| 1 | Complete codification: Bazarr, Jellyfin, Recyclarr, ZFS role, `ansible.cfg` path fixes | Current |
+| 2 | Destructive rebuild validation — full stack teardown and replay | Next |
+| 3 | Molecule unit tests per role | Deferred |
+| 4 | CI/CD, observability, Terraform, PostgreSQL migration, Ansible Vault | Post-validation |
 
-### Recyclarr
-
-Currently running adhoc with TRaSH Guides defaults for 1080p movies and TV, with minor modifications to improve grab success. Configuration should be reviewed and understood before being codified — the existing tweaks need to be documented so intent is preserved when Ansible manages it.
-
------
-
-## Secrets
-
-**There are no current secrets to manage.** The *arr apps configure API keys through their web UIs post-deployment. SABnzbd, Bazarr, and Jellyfin follow the same pattern. SQLite requires no credentials.
-
-Ansible Vault infrastructure should be set up **ahead of the PostgreSQL migration (Phase 4)** when database credentials will need to be passed through Ansible. It is not a current gap.
-
------
-
-## Roadmap
-
-The progression is deliberate and ordered. Each phase validates the previous before adding complexity.
-
-### Phase 1 — Complete Codification (current focus)
-
-Codify the remaining running services into Ansible roles following the existing `media_app` pattern:
-
-1. SABnzbd role
-1. Bazarr role
-1. Jellyfin role
-1. Recyclarr role (config management, not a service — different pattern)
-1. Fix hardcoded paths in `ansible.cfg` (portability)
-1. ZFS datasets role (declarative dataset + snapshot management)
-
-**Exit criteria:** Every running service is described in Ansible. No manual steps required to configure a service post-deployment.
-
-### Phase 2 — Destructive Validation (first acceptance test)
-
-Tear down the entire stack. Run the playbooks. Walk away. Come back and open Jellyfin.
-
-This is the real integration test. Gaps found here become commits that permanently eliminate manual steps. Each failure is expected and valuable — the goal is to find everything Ansible doesn't cover yet.
-
-**Exit criteria:** Full stack rebuild from scratch with no manual intervention beyond running the playbook.
-
-### Phase 3 — Molecule Unit Testing
-
-Formalize what Phase 2 proved into repeatable, automated unit tests using Molecule. Each role gets tests that assert the correct end state.
-
-**Exit criteria:** All roles have Molecule tests. A second destructive rebuild confirms both the playbooks and the tests are accurate.
-
-### Phase 4 — DevOps Tooling (unordered, post-validation)
-
-Once the foundation is proven, extend with:
-
-- **CI/CD** — GitHub Actions for lint + Molecule on every push
-- **Observability** — Prometheus + Grafana, informed by the question "what logs would have helped during Phase 2 troubleshooting"
-- **Terraform** — infrastructure provisioning layer above Ansible
-- **PostgreSQL migration** — *arr apps off SQLite, requires Ansible Vault for credentials
-- **Ansible Vault** — secrets management ahead of PostgreSQL work
-
-### Future State QoL (low priority, post-Phase 4)
-
-- Readarr + Kavita (ebooks)
-- Mylar3 + Komga (comics)
-- Unpackerr (archive extraction gap-filler)
-- Jellystat (Jellyfin playback analytics)
-- Reverse proxy + Authelia (if external access ever needed)
-- Jellyseerr (media requests, if sharing with others)
-
------
-
-## Observability Philosophy
-
-Current observability is intentionally limited — log-based only, no metrics. This is a deferred decision, not a gap.
-
-The approach for Phase 4: use Phase 2 troubleshooting experience to identify what questions couldn't be answered, then build observability to answer those specific questions. This produces intentional, justified monitoring rather than cargo-culted dashboards.
-
------
-
-## Assessment
-
-|Area              |Rating|Notes                                                 |
-|------------------|------|------------------------------------------------------|
-|Architecture      |⭐⭐⭐⭐⭐ |Excellent role abstraction, media_app pattern is clean|
-|Security hardening|⭐⭐⭐⭐⭐ |systemd hardening exceeds most production environments|
-|Automation        |⭐⭐⭐⭐  |Strong Ansible fundamentals                           |
-|Secrets management|N/A   |No current secrets — revisit at PostgreSQL migration  |
-|Testing           |⭐⭐    |Lint only — Molecule is Phase 3                       |
-|Observability     |⭐⭐    |Intentionally deferred, informed approach planned     |
-|Documentation     |⭐⭐    |Minimal — improving via Obsidian vault                |
-
------
-
-## Context for AI Sessions
-
-When working in this repo, assume:
-
-- Skill level: strong Linux/Ansible/ZFS fundamentals, learning Molecule/CI patterns
-- Goal: prove the stack is fully codified, then layer in testing and DevOps tooling methodically
-- Career context: repositioning from IT Support → Infrastructure Automation / DevOps Engineer
-- Learning style: understand the *why* before implementing, document takeaways in Obsidian
-- Each completed phase produces both working infrastructure and documented understanding
-
-**Do not suggest Docker-based rewrites.** The systemd + binary deployment pattern is intentional.
-
-**Do not suggest skipping phases.** The ordered progression (codify → validate destructively → test → tooling) is deliberate.
+No secrets are currently managed by Ansible. The *arr apps configure API keys through their web UIs post-deployment. Vault infrastructure is deferred until Phase 4 (PostgreSQL migration requires database credentials).
