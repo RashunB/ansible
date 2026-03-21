@@ -1,4 +1,4 @@
-- name: Boostrap Minimal Prereqs
+- name: Bootstrap Minimal Prereqs
   hosts: all
   gather_facts: false
   become: true
@@ -10,7 +10,7 @@
           elif command -v yum >/dev/null 2>&1; then yum -y install python3;
           else exit 1; fi
         fi
-      changed_when: false
+      changed_when: '"python3" in result.stdout'
 
     - name: Ping Python Present
       ansible.builtin.ping:

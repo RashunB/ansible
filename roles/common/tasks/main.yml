@@ -26,7 +26,7 @@
         state: directory
         owner: root
         group: root
-        mode: "0755"
+        mode: "0644"
 
     - name: Drop Journald Config Fragment
       ansible.builtin.copy:
@@ -41,7 +41,6 @@
       notify: Restart systemd-journald
 
     - name: Disable rsyslog
-      when: journald_persist | bool
       ansible.builtin.service:
         name: rsyslog
         state: stopped

@@ -5,7 +5,7 @@
         url: "{{ media_app_download_url }}"
         mode: "0644"
         checksum: "{{ media_app_sha256 }}"
-        dest: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}.tar.gz"
+        dest: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}/{{ media_app_release }}"
         owner: "{{ media_app_owner }}"
         group: "{{ media_app_group }}"
 
@@ -19,7 +19,7 @@
 
     - name: Decompress Release - "{{ media_app_exec_name }}"
       ansible.builtin.unarchive:
-        src: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}.tar.gz"
+        src: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}/{{ media_app_release }}"
         dest: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}"
         owner: "{{ media_app_owner }}"
         group: "{{ media_app_group }}"

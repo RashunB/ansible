@@ -1,8 +1,6 @@
 - name: Media_Platform Baseline
   hosts: media
   become: false
-  gather_facts: true
-
   pre_tasks:
     - name: Gather Facts
       become: false

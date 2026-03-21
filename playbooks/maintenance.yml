@@ -1,5 +1,5 @@
 - name: Maintenance
-  hosts: control
+  hosts: all
   become: true
   gather_facts: true
 
