@@ -1,7 +1,3 @@
-- name: Capture Role Path
-  ansible.builtin.set_fact:
-    bazarr_role_path: "{{ role_path }}"
-
 - name: Bazarr
   ansible.builtin.include_role:
     name: media_app
@@ -35,4 +31,4 @@
       - "{{ media_app_data }}:/srv/{{ media_app_name }}/data"
       - "{{ media_app_media_root }}/arr_suite/movies:/srv/movies"
       - "{{ media_app_media_root }}/arr_suite/tv:/srv/tv"
-    media_app_pre_service_hook: "{{ bazarr_role_path }}/tasks/python_venv.yml"
+    media_app_pre_service_hook: "{{ role_path }}/tasks/python_venv.yml"
