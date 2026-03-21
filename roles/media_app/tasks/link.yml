@@ -8,13 +8,13 @@
 
     - name: Remove App Directory - "{{ media_app_exec_name }}"
       ansible.builtin.file:
-        path: "{{ media_app_app }}"
+        path: "{{ media_app_exec_root }}"
         state: absent
       when: media_app_link_stat.stat.exists and not media_app_link_stat.stat.islnk
 
     - name: Create a symbolic link - "{{ media_app_exec_name }}"
       ansible.builtin.file:
-        src: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}/{{ media_app_archive_name }}"
+        src: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}"
         dest: "{{ media_app_app }}"
         owner: "{{ media_app_owner }}"
         group: "{{ media_app_group }}"

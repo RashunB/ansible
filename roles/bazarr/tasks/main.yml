@@ -1,0 +1,38 @@
+- name: Capture Role Path
+  ansible.builtin.set_fact:
+    bazaar_role_path: "{{ role_path }}"
+
+- name: Bazarr
+  ansible.builtin.include_role:
+    name: media_app
+  vars:
+    media_app_name: bazarr
+    media_app_exec_name: "{{ media_app_name }}"
+    media_app_version: 1.5.4
+    media_app_release: "{{ media_app_exec_name }}.zip"
+    media_app_github_url: "https://github.com/morpheus65535/{{ media_app_name }}/releases/download"
+    media_app_download_url: "{{ media_app_github_url }}/v{{ media_app_version }}/{{ media_app_release }}"
+    media_app_sha256: sha256:cad2afdf10e3f654cd4e95013193edb91bdc31885a3405348253f3339ebd1dd6
+    media_app_service_dirs:
+      - "{{ media_app_root }}"
+      - "{{ media_app_media_root }}/arr_suite/movies"
+      - "{{ media_app_media_root }}/arr_suite/tv"
+    media_app_service_wants:
+      - network-online.target
+    media_app_service_after:
+      - network-online.target
+    media_app_python_venv: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}/venv"
+    media_app_python_reqs: "{{ media_app_app }}/requirements.txt"
+    media_app_python_srv: "/srv/{{ media_app_name }}/app/venv/bin/python"
+    media_app_service_exec: >-
+      {{ media_app_python_srv }} /srv/{{ media_app_name }}/app/{{ media_app_exec_name }}.py
+      --config /srv/{{ media_app_name }}/data
+    media_app_sys_srv:
+      - movies
+      - tv
+    media_app_service_bind_rw:
+      - "{{ media_app_app }}:/srv/{{ media_app_name }}/app"
+      - "{{ media_app_data }}:/srv/{{ media_app_name }}/data"
+      - "{{ media_app_media_root }}/arr_suite/movies:/srv/movies"
+      - "{{ media_app_media_root }}/arr_suite/tv:/srv/tv"
+    media_app_pre_service_hook: "{{ bazaar_role_path }}/tasks/python_venv.yml"

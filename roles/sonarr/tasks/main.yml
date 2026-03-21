@@ -23,12 +23,12 @@
       - network-online.target
       - sabnzbd.service
       - prowlarr.service
-    media_app_service_exec: "{{ media_app_app }}/{{ media_app_exec_name }} -nobrowser -data=/srv/{{ media_app_name }}/data"
+    media_app_service_exec: "/srv/{{ media_app_name }}/app/{{ media_app_exec_name }}/{{ media_app_exec_name }} -nobrowser -data=/srv/{{ media_app_name }}/data"
     media_app_sys_srv:
       - downloads
       - tv
     media_app_service_bind_ro:
-      - "{{ media_app_app }}:/srv/{{ media_app_name }}/app"
+      - "{{ media_app_exec_root }}:/srv/{{ media_app_name }}/app"
     media_app_service_bind_rw:
       - "{{ media_app_media_root }}/downloads:/srv/downloads"
       - "{{ media_app_media_root }}/arr_suite/tv:/srv/tv"

@@ -12,6 +12,7 @@
     name: media_app
   vars:
     media_app_name: sabnzbd
+    media_app_exec_root: "{{ media_app_root }}/app/{{ media_app_archive_name }}"
     media_app_exec_name: SABnzbd
     media_app_version: 4.5.3
     media_app_download_url: "{{ media_app_github_url }}/{{ media_app_version }}/{{ media_app_release }}"
@@ -32,6 +33,7 @@
       - network-online.target
     media_app_service_port: 8082
     media_app_python_venv: "{{ media_app_root }}/versions/{{ media_app_name }}_{{ media_app_version }}/{{ media_app_archive_name }}/venv"
+    media_app_python_reqs: "{{ media_app_exec_root }}/requirements.txt"
     media_app_python_srv: "/srv/{{ media_app_name }}/app/venv/bin/python"
     media_app_service_exec: >-
       {{ media_app_python_srv }} /srv/{{ media_app_name }}/app/{{ media_app_exec_name }}.py
@@ -44,7 +46,7 @@
       - downloads/incomplete
       - downloads/complete
     media_app_service_bind_ro:
-      - "{{ media_app_app }}:/srv/{{ media_app_name }}/app"
+      - "{{ media_app_exec_root }}:/srv/{{ media_app_name }}/app"
     media_app_service_bind_rw:
       - "{{ media_app_data }}:/srv/{{ media_app_name }}/data"
       - "{{ media_app_media_root }}/downloads:/srv/downloads"
